@@ -13,17 +13,14 @@ namespace TreeSerializationForm
 {
     public partial class Form1 : Form
     {
-        private int nodeSizeof;
-        private int leafSizeof;
-        private int byteSizeof;
+
         private Tree tree;
         public Form1()
         {
             InitializeComponent();
-            nodeSizeof = 4*sizeof(Double) + sizeof(Int32);
-            leafSizeof = 4 * sizeof(Double) + 2*sizeof(Int32);
-            byteSizeof = sizeof(Byte);
         }
+
+        #region generate and populate a dummy tree
 
         public void generateTree()
         {
@@ -99,10 +96,14 @@ namespace TreeSerializationForm
             }
         }
 
+        #endregion
+
 
         const byte readNode = 0;
         const byte readLeaf = 1;
         const byte goUpOneNode = 2;
+
+        #region serialize tree
 
         private byte[] serializeTree()
         {
@@ -185,79 +186,10 @@ namespace TreeSerializationForm
             sb.Append("writer.Write node.numberOfChildren " + node.numberOfChildren + "\r\n");
         }
 
+        #endregion
 
 
-        private void saveTreeToTxt(Node n, StringBuilder sb)
-        {
-
-            if (n.hasChildren)   /* this is an internal node in the tree */
-            {
-                sb.Append("node # = " + n.GetHashCode());
-                sb.Append("  node value = " + n.value);
-                sb.Append("  node heigth = " + n.height + "\r\n");
-                sb.Append("read NODE marker \r\n");
-
-                for (int i = 0; i < n.children.Count(); i++)
-                {
-                    //sb.Append("child " + i + "  node # = " + n.children[i].GetHashCode() + "  node value = " + n.value + "\r\n");
-                    saveTreeToTxt((Node)n.children[i], sb);
-                    if (i == n.children.Count() - 1)
-                    {
-                        sb.Append("go up one node marker \r\n");
-                    }
-                    else
-                    {
-                        sb.Append("read one node marker\r\n");
-                    }
-                }
-            }
-
-            else /* this is a leaf node */
-            {
-                sb.Append("node # = " + n.GetHashCode());
-                sb.Append("  node value = " + n.value);
-                sb.Append("  node heigth = " + n.height + "\r\n");
-                sb.Append("read leaf marker \r\n");
-
-                for (int k = 0; k < n.leaves.Count(); k++)
-                {
-                    sb.Append("leaf " + k + "  leaf # = " + n.leaves[k].GetHashCode() + "  leaf value = " + n.leaves[k].leafValue + "\r\n");
-                    if (k == n.leaves.Count() - 1)
-                    {
-                        sb.Append("go up one node - end of leaves marker \r\n");
-                    }
-                    else
-                    {
-                        sb.Append("read leaf marker \r\n");
-                    }
-                }
-            }
-
-        }
-
-
-        private void saveTxt(string fileName, string fileContent)
-        {
-            using (FileStream stream = new FileStream(fileName, FileMode.Append))
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                writer.Write(fileContent);
-                writer.Close();
-            }
-        }
-
-
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            generateTree();
-            //StringBuilder sb = new StringBuilder();
-            //saveTreeToTxt(tree.root, sb);
-            //saveTxt("RTree.txt", sb.ToString());
-            byte[] treeData = serializeTree();
-
-            Tree newTree = deserializeTree(treeData);
-
-        }
+        #region deserialize tree
 
 
         private Tree deserializeTree(byte[] treeData)
@@ -340,5 +272,82 @@ namespace TreeSerializationForm
             node.addLeaf(leaf);
             leaf.id = reader.ReadInt32();
         }
+
+        #endregion
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            generateTree();
+            //StringBuilder sb = new StringBuilder();
+            //saveTreeToTxt(tree.root, sb);
+            //saveTxt("RTree.txt", sb.ToString());
+            byte[] treeData = serializeTree();
+
+            Tree newTree = deserializeTree(treeData);
+
+        }
+
+        #region save text files
+        private void saveTreeToTxt(Node n, StringBuilder sb)
+        {
+
+            if (n.hasChildren)   /* this is an internal node in the tree */
+            {
+                sb.Append("node # = " + n.GetHashCode());
+                sb.Append("  node value = " + n.value);
+                sb.Append("  node heigth = " + n.height + "\r\n");
+                sb.Append("read NODE marker \r\n");
+
+                for (int i = 0; i < n.children.Count(); i++)
+                {
+                    //sb.Append("child " + i + "  node # = " + n.children[i].GetHashCode() + "  node value = " + n.value + "\r\n");
+                    saveTreeToTxt((Node)n.children[i], sb);
+                    if (i == n.children.Count() - 1)
+                    {
+                        sb.Append("go up one node marker \r\n");
+                    }
+                    else
+                    {
+                        sb.Append("read one node marker\r\n");
+                    }
+                }
+            }
+
+            else /* this is a leaf node */
+            {
+                sb.Append("node # = " + n.GetHashCode());
+                sb.Append("  node value = " + n.value);
+                sb.Append("  node heigth = " + n.height + "\r\n");
+                sb.Append("read leaf marker \r\n");
+
+                for (int k = 0; k < n.leaves.Count(); k++)
+                {
+                    sb.Append("leaf " + k + "  leaf # = " + n.leaves[k].GetHashCode() + "  leaf value = " + n.leaves[k].leafValue + "\r\n");
+                    if (k == n.leaves.Count() - 1)
+                    {
+                        sb.Append("go up one node - end of leaves marker \r\n");
+                    }
+                    else
+                    {
+                        sb.Append("read leaf marker \r\n");
+                    }
+                }
+            }
+
+        }
+
+
+        private void saveTxt(string fileName, string fileContent)
+        {
+            using (FileStream stream = new FileStream(fileName, FileMode.Append))
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                writer.Write(fileContent);
+                writer.Close();
+            }
+        }
+
+        #endregion
+
     }
 }

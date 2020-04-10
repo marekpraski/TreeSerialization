@@ -52,7 +52,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="ITreeElement.cs" />
     <Compile Include="Leaf.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Program.cs" />

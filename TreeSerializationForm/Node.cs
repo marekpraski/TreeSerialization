@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TreeSerializationForm
 {
-    public class Node : ITreeElement
+    public class Node
     {
         public double value {get; set;}
         public int id { get; set; }
