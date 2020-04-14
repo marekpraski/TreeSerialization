@@ -126,10 +126,10 @@ namespace TreeSerializationForm
 
         private void serializeNode(Node node, BinaryWriter writer, StringBuilder sb)
         {
+            serializeNodeData(node, writer, sb);
 
             if (node.hasChildren)   /* this is an internal node in the tree */
             {
-                serializeNodeData(node, writer, sb);
 
                 for (int i = 0; i < node.children.Count(); i++)
                 {
@@ -138,7 +138,7 @@ namespace TreeSerializationForm
             }
             else /* this is a leaf node */
             {
-                serializeNodeData(node, writer,sb);
+                //serializeNodeData(node, writer,sb);
 
                 for (int k = 0; k < node.leaves.Count(); k++)
                 {
