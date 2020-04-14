@@ -24,7 +24,8 @@ namespace TreeSerializationForm
 
         public void generateTree()
         {
-            Node rootNode = new Node() { value = 0, id = 0, height = 3 };
+            Node rootNode = new Node() { value = 0, height = 3 };
+            rootNode.id = 1;//rootNode.GetHashCode();
             rootNode.setAsRoot();
             tree = new Tree(rootNode);
             //populateTreeAuto(3);
@@ -35,23 +36,24 @@ namespace TreeSerializationForm
         {
             addChildren(tree.root, 2,1,2);
 
-            //addLeaves(tree.root.children[0], 1);
-            //addLeaves(tree.root.children[1], 2);
+            //addLeaves(tree.root.children[0], 9);
 
             addChildren(tree.root.children[0], 3, 10, 1);
-            addChildren(tree.root.children[1], 2, 10, 1);
+            //addChildren(tree.root.children[1], 2, 10, 1);
 
-            addChildren(tree.root.children[0].children[0],2,100,4);
+            //addChildren(tree.root.children[0].children[0],2,100,4);
+
+            addLeaves(tree.root.children[1], 4);
 
             addLeaves(tree.root.children[0].children[0], 3);
             addLeaves(tree.root.children[0].children[1], 1);
             addLeaves(tree.root.children[0].children[2], 2);
 
-            addLeaves(tree.root.children[1].children[0], 1);
-            addLeaves(tree.root.children[1].children[1], 2);
+            //addLeaves(tree.root.children[1].children[0], 1);
+            //addLeaves(tree.root.children[1].children[1], 2);
 
-            addLeaves(tree.root.children[0].children[0].children[0], 3);
-            addLeaves(tree.root.children[0].children[0].children[1], 2);
+            //addLeaves(tree.root.children[0].children[0].children[0], 3);
+            //addLeaves(tree.root.children[0].children[0].children[1], 2);
 
         }
 
@@ -59,7 +61,8 @@ namespace TreeSerializationForm
         {
             for (int i = 0; i<index; i++)
             {
-                Node n = new Node() { value = 1 * i, id = i, height = 2 };
+                Node n = new Node() { value = 1 * i, height = 2 };
+                n.id = n.GetHashCode();
                 tree.root.addChild(n);
                 addChildren(n, 3,1,1);
             }
@@ -70,7 +73,8 @@ namespace TreeSerializationForm
             double v = parent.value;
             for (int i = 0; i < 4; i++)
             {
-                Node n = new Node() { value = v*10 * i, id = i, height = 1 };
+                Node n = new Node() { value = v*10 * i, height = 1 };
+                n.id = n.GetHashCode();
                 parent.addChild(n);
                 addLeaves(n,3);
             }
@@ -81,7 +85,8 @@ namespace TreeSerializationForm
             double v = parent.value;
             for (int i = 0; i < numberOfChildren; i++)
             {
-                Node n = new Node() { value = valueIndex * 10 * i, id = i, height = heigthIndex };
+                Node n = new Node() { value = valueIndex * 10 * i, height = heigthIndex };
+                n.id = i + 10;//n.GetHashCode();
                 parent.addChild(n);
             }
         }
@@ -111,8 +116,6 @@ namespace TreeSerializationForm
             MemoryStream stream = new MemoryStream();
             using (BinaryWriter writer = new BinaryWriter(stream))
             {
-                writer.Write(readNode);         //polecenie czytania nody root drzewa
-                sb.Append("writer.Write readNode\r\n");
                 serializeNode(tree.root, writer, sb);
             }
             byte[] treeData = stream.ToArray();
@@ -127,24 +130,10 @@ namespace TreeSerializationForm
             if (node.hasChildren)   /* this is an internal node in the tree */
             {
                 serializeNodeData(node, writer, sb);
-                writer.Write(readNode);
-                sb.Append("writer.Write readNode\r\n");
 
                 for (int i = 0; i < node.children.Count(); i++)
                 {
-
                     serializeNode(node.children[i], writer, sb);
-                    if (i == node.children.Count() - 1)
-                    {
-                        writer.Write(goUpOneNode);
-                        sb.Append("writer.Write goUpOneNode\r\n");
-                    }
-                    else
-                    {
-                        writer.Write(readNode);
-                        sb.Append("writer.Write readNode\r\n");
-                    }
-
                 }
             }
             else /* this is a leaf node */
@@ -153,14 +142,7 @@ namespace TreeSerializationForm
 
                 for (int k = 0; k < node.leaves.Count(); k++)
                 {
-                    writer.Write(readLeaf);
-                    sb.Append("writer.Write readLeaf\r\n");
                     serializeLeafData(node.leaves[k], writer,sb);
-                    if (k == node.leaves.Count() - 1)
-                    {
-                        writer.Write(goUpOneNode);
-                        sb.Append("writer.Write goUpOneNode\r\n");
-                    }
                 }
             }
 
@@ -179,11 +161,15 @@ namespace TreeSerializationForm
             writer.Write(node.height);
             sb.Append("writer.Write node.height " + node.height + "\r\n");
 
-            //określam liczbę dzieci dopiero przed serializacją, bo ten parametr jest mi potzrebny do deserializacji
+            //określam liczbę dzieci dopiero przed serializacją, bo ten parametr jest mi potrzebny do deserializacji
             //nie mogę zautomatyzować liczenia tego parametru w nodzie, bo zaburzy pętlę podczas deserializacji
             node.numberOfChildren = node.children.Count();  
             writer.Write(node.numberOfChildren);
             sb.Append("writer.Write node.numberOfChildren " + node.numberOfChildren + "\r\n");
+
+            node.numberOfLeaves = node.leaves.Count();
+            writer.Write(node.numberOfLeaves);
+            sb.Append("writer.Write node.numberOfLeaves " + node.numberOfLeaves + "\r\n");
         }
 
         #endregion
@@ -195,12 +181,13 @@ namespace TreeSerializationForm
         private Tree deserializeTree(byte[] treeData)
         {
             StringBuilder sb = new StringBuilder();
+            Tree newTree = null;
             try
             {
                 MemoryStream stream = new MemoryStream(treeData);
 
                 Node root = new Node();
-                Tree tree = new Tree(root);
+                newTree = new Tree(root);
                 using (BinaryReader reader = new BinaryReader(stream))
                 {
                     deserializeNode(root, reader, sb);
@@ -208,38 +195,27 @@ namespace TreeSerializationForm
             }
             catch (Exception)
             {
-
                 saveTxt("deserialize.txt", sb.ToString());
             }
 
             saveTxt("deserialize.txt", sb.ToString());
-            return tree;
+            return newTree;
         }
 
         private void deserializeNode(Node node,BinaryReader reader, StringBuilder sb)
         {
-            byte nextAction;
-
-            while (reader.BaseStream.Position != reader.BaseStream.Length)
+            deserializeNodeData(node, reader, sb);
+            if (node.numberOfChildren > 0) {
+                for (int i = 0; i < node.numberOfChildren; i++)
+                {
+                    Node child = new Node();
+                    node.addChild(child);
+                    deserializeNode(child, reader, sb);
+                }
+            }
+            else 
             {
-                nextAction = reader.ReadByte();
-                sb.Append("byte nextAction = reader.ReadByte(); " + nextAction + "\r\n");
-
-                if (nextAction == readNode)
-                {
-                    deserializeNodeData(node, reader, sb);
-
-                    for (int i = 0; i < node.numberOfChildren; i++)
-                    {
-                        Node child = new Node();
-                        node.addChild(child);
-                        deserializeNode(child, reader, sb);
-                    }
-                }
-                else if (nextAction == readLeaf)
-                {
-                    deserializeLeaves(node, reader,sb);
-                }
+                deserializeLeaves(node, reader, sb);
             }
         }
 
@@ -251,20 +227,19 @@ namespace TreeSerializationForm
             sb.Append("node.height = reader.ReadInt32() " + node.height + "\r\n");
             node.numberOfChildren = reader.ReadInt32();
             sb.Append("node.numberOfChildren = reader.ReadInt32() " + node.numberOfChildren + "\r\n");
+            node.numberOfLeaves = reader.ReadInt32();
+            sb.Append("node.numberOfLeaves = reader.ReadInt32() " + node.numberOfLeaves + "\r\n");
         }
 
         private void deserializeLeaves(Node node, BinaryReader reader, StringBuilder sb)
         {
-            byte nextAction;
-            do
+            for(int i =0; i<node.numberOfLeaves; i++)
             {
                 Leaf leaf = new Leaf();
                 deserializeLeafData(node, reader, leaf);
                 sb.Append("leaf.id = reader.ReadInt32(); " + leaf.id + "\r\n");
-                nextAction = reader.ReadByte();
-                sb.Append("nextAction = reader.ReadByte(); " + nextAction + "\r\n");
+                sb.Append("nextAction = reader.ReadByte(); 1\r\n");
             }
-            while (nextAction == readLeaf);
         }
 
         private void deserializeLeafData(Node node, BinaryReader reader, Leaf leaf)

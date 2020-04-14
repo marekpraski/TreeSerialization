@@ -10,9 +10,11 @@ namespace TreeSerializationForm
     {
         public double value {get; set;}
         public int id { get; set; }
+        public int hash { get { return this.GetHashCode(); } }
         public bool isRoot { get; private set; }
         public bool hasChildren { get { return children.Count > 0; } }
         public int numberOfChildren { get; set; } = 0;   //potrzebuję do deserializacji
+        public int numberOfLeaves { get; set; } = 0;     //potrzebuję do deserializacji
         public int height { get; set; }
         public List<Node> children { get; }
         public List<Leaf> leaves { get; }
